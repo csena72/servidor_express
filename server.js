@@ -1,49 +1,48 @@
-const express = require('express');
+const express = require("express");
+const fs = require("fs");
 
-/*
-Consigna: 
+const app = express();
+const puerto = 8080;
 
-Realizar un proyecto de servidor basado en node.js que utilice el middleware express e implemente tres endpoints en el puerto 8080:
+let cantidadVisitas1 = 0;
+let cantidadVisitas2 = 0;
 
-Ruta get '/items':
-     que responda un objeto con todos los productos y su cantidad total en el siguiente formato: { items: [productos], cantidad: (cantidad productos) }
+const getData = () => {
+  try {
+    let data = fs.readFileSync("./productos.txt", "utf-8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.log("error al leer archivo:", error);
+  }
+};
 
-Ruta get '/item-random':
-     que devuelva un producto elegido al azar desde un array de productos que se encuentran en el archivo 'productos.txt'. El formato de respuesta será: { item: {producto} }
+app.get("/items", (req, res) => {
+  cantidadVisitas1++;
 
-La ruta get '/visitas': 
-    1. devuelve un objeto que indica cuantas veces se visitó la ruta del punto 1 y cuantas la ruta del punto 
-    2. Contestar con el formato:  { visitas : { items: cantidad, item: cantidad } }
+  let productos = getData();
 
-    Usar 'productos.txt' del desafío anterior.
-
-*/
-
- const app = express();
- 
- const puerto = 8080;
-
- app.get('/items', (req, res) => {
-    console.log('request recibido!');
-    res.json({ msg: 'items!' });
+  res.json({ items: [productos], cantidad: productos.length });
 });
 
-app.get('/item-random', (req, res) => {
-    console.log('request recibido!');
-    res.json({ msg: 'item-random!' });
+app.get("/item-random", (req, res) => {
+  cantidadVisitas2++;
+
+  let productos = getData();
+
+  const random = Math.floor(Math.random() * productos.length);
+  const producto = productos[random];
+
+  res.json({ item: { producto } });
 });
 
-app.get('/visitas', (req, res) => {
-    console.log('request recibido!');
-    res.json({ msg: 'visitas!' });
+app.get("/visitas", (req, res) => {
+  res.json({ visitas: { items: cantidadVisitas1, item: cantidadVisitas2 } });
 });
 
+const server = app.listen(puerto, () => {
+  console.log(`servidor escuchando en http://localhost:${puerto}`);
+});
 
- const server = app.listen(puerto, () => {
-     console.log(`servidor escuchando en http://localhost:${puerto}`);
- });
-
-
- server.on('error', error => {
-     console.log('error en el servidor:', error);
- });
+server.on("error", (error) => {
+  console.log("error en el servidor:", error);
+});
